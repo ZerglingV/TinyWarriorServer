@@ -1,0 +1,5 @@
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\obj\Debug\net5.0\TinyWarriorServer.csprojAssemblyReference.cache
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\obj\Debug\net5.0\TinyWarriorServer.GeneratedMSBuildEditorConfig.editorconfig
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\obj\Debug\net5.0\TinyWarriorServer.AssemblyInfoInputs.cache
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\obj\Debug\net5.0\TinyWarriorServer.AssemblyInfo.cs
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\obj\Debug\net5.0\TinyWarriorServer.csproj.CoreCompileInputs.cache
