@@ -5,11 +5,14 @@ namespace TinyWarriorInfo
         [Serializable]
         public class PlayerAction
         {
-                public int PlayerIndex { get; set; }
-                public float DirectionX { get; set; }
-                public float DirectionY { get; set; }
-                public float LocationX { get; set; }
-                public float LocationY { get; set; }
+                public string PlayerIndex { get; set; }
+                public float PositionX { get; set; }
+                public float PositionY { get; set; }
+                public float Horizontal { get; set; }
+                public float Vertical { get; set; }
+                public float Speed { get; set; }
+                public float Health { get; set; }
                 public bool IsMeleeAttack { get; set; }
+                public bool IsRangedAttack { get; set; }
         }
 }

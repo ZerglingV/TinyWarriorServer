@@ -10,7 +10,7 @@ namespace TinyWarriorServer
 {
         class GameSocketServer
         {
-                private static byte[] result = new byte[1024];
+                private static byte[] result = new byte[4096];
                 private static string ip = "127.0.0.1";
                 private static int port = 8765;
                 private static IPEndPoint ipEndPoint;
@@ -41,6 +41,7 @@ namespace TinyWarriorServer
                         PrintLineInfo("Initialize listening {0} successfully.", serverSocket.LocalEndPoint.ToString());
                         Thread thread = new Thread(ListenClientConnection);
                         thread.Start();
+
                         monitorTimer = new Timer(MonitorClients, null, monitorPeriod, monitorPeriod);
 
                         CommandHandle();
@@ -55,14 +56,17 @@ namespace TinyWarriorServer
                         {
                                 switch (command)
                                 {
-                                        case "test":
-                                                int[] array = GenerateRandomPosition();
-                                                for (int i = 0; i < array.Length; i++)
-                                                {
-                                                        Console.Write(array[i] + " ");
-                                                }
-                                                Console.WriteLine();
-                                                break;
+                                        // work in progress
+                                        case "win":// work in progress
+                                                SendToAll("winner=0");// work in progress
+                                                break;// work in progress
+                                        case "dead":// work in progress
+                                                SendToAll("dead=0");// work in progress
+                                                break;// work in progress
+                                        case "leaver":// work in progress
+                                                SendToAll("leaver=0");// work in progress
+                                                break;// work in progress
+                                                      // work in progress
                                         case "clear":
                                                 Console.Clear();
                                                 break;
@@ -86,7 +90,7 @@ namespace TinyWarriorServer
                                                 roomInfo.GuestsAddressAndName = new Hashtable();// work in progress
                                                 roomInfo.GuestsAddressAndName.Add("127.0.0.1:6001", "Player1");// work in progress
                                                 roomInfo.GuestsAddressAndName.Add("127.0.0.1:6002", "Player2");// work in progress
-                                                roomInfo.MaxPlayer = 2;// work in progress
+                                                roomInfo.MaxPlayerNumber = 2;// work in progress
                                                 roomInfo.RoomName = "test room";// work in progress
                                                 roomInfo.OwnerAddress = "127.0.0.1:6001";
 
@@ -94,7 +98,7 @@ namespace TinyWarriorServer
                                                 roomInfo2.GuestsAddressAndName = new Hashtable();// work in progress
                                                 roomInfo2.GuestsAddressAndName.Add("127.0.0.1:6003", "Player3");// work in progress
                                                 roomInfo2.GuestsAddressAndName.Add("127.0.0.1:6004", "Player4");// work in progress
-                                                roomInfo2.MaxPlayer = 7;// work in progress
+                                                roomInfo2.MaxPlayerNumber = 7;// work in progress
                                                 roomInfo2.RoomName = "test room2";// work in progress
                                                 roomInfo2.OwnerAddress = "127.0.0.1:6004";
 
@@ -102,7 +106,7 @@ namespace TinyWarriorServer
                                                 roomInfo3.GuestsAddressAndName = new Hashtable();// work in progress
                                                 roomInfo3.GuestsAddressAndName.Add("127.0.0.1:6005", "Player5");// work in progress
                                                 roomInfo3.GuestsAddressAndName.Add("127.0.0.1:6006", "Player6");// work in progress
-                                                roomInfo3.MaxPlayer = 10;// work in progress
+                                                roomInfo3.MaxPlayerNumber = 10;// work in progress
                                                 roomInfo3.IsStart = true;
                                                 roomInfo3.RoomName = "test room3";// work in progress
                                                 roomInfo3.OwnerAddress = "127.0.0.1:6005";
@@ -160,11 +164,13 @@ namespace TinyWarriorServer
                 private static void MonitorPause()
                 {
                         monitorTimer.Change(-1, monitorPeriod);
+                        PrintLineInfo("The monitor has been paused.");
                 }
 
                 private static void MonitorResume()
                 {
                         monitorTimer.Change(0, monitorPeriod);
+                        PrintLineInfo("The monitor has been resumed.");
                 }
 
                 private static void RemoveAllConnection()
@@ -200,7 +206,19 @@ namespace TinyWarriorServer
                         {
                                 foreach (ClientInfo clientInfo in clientsInfo)
                                 {
-                                        SendMsgToClient(message, clientInfo.Socket);
+                                        SendMsgToClient(message, clientInfo);
+                                }
+                        }
+                }
+
+                private static void SendToAll(string message)
+                {
+                        message = message.Trim().ToLower();
+                        if (clientsInfo.Count != 0)
+                        {
+                                foreach (ClientInfo clientInfo in clientsInfo)
+                                {
+                                        SendMsgToClient(message, clientInfo);
                                 }
                         }
                 }
@@ -230,7 +248,7 @@ namespace TinyWarriorServer
                         PrintLineInfo("{0,-8} {1,-20}  {2,-15}  {3,-15}  {4,-15}  {5,-15}", "number", "room name", "current players", "max players", "is playing", "owner's ip");
                         foreach (RoomInfo roomInfo in roomsInfo)
                         {
-                                PrintLineInfo("{0,-8} {1,-20}  {2,-15}  {3,-15}  {4,-15}  {5,-15}", i++, roomInfo.RoomName, roomInfo.GuestsAddressAndName.Count, roomInfo.MaxPlayer, roomInfo.IsStart, roomInfo.OwnerAddress);
+                                PrintLineInfo("{0,-8} {1,-20}  {2,-15}  {3,-15}  {4,-15}  {5,-15}", i++, roomInfo.RoomName, roomInfo.GuestsAddressAndName.Count, roomInfo.MaxPlayerNumber, roomInfo.IsStart, roomInfo.OwnerAddress);
                                 Console.Write("{0,31} {1,6}", "players' list: ", "");
                                 foreach (string name in roomInfo.GuestsAddressAndName.Values)
                                 {
@@ -368,78 +386,7 @@ namespace TinyWarriorServer
 
                 #region -- Receive & Send --
 
-                private static void SendMsgToClient(string message, Socket client)
-                {
-                        ByteBuffer buffer = new ByteBuffer(message);
-                        byte[] result = buffer.ToBytes();
-                        client.Send(result);
-                }
-
-                private static void SendMsgToRoom(string message, RoomInfo roomInfo)
-                {
-                        foreach (string guestAddress in roomInfo.GuestsAddressAndName.Keys)
-                        {
-                                foreach (ClientInfo client in clientsInfo)
-                                {
-                                        if (client.Socket.RemoteEndPoint.ToString() == guestAddress)
-                                        {
-                                                SendMsgToClient(message, client.Socket); // tell all clients who in room
-                                        }
-                                }
-                        }
-                }
-
-                private static void SendIndexToRoom(RoomInfo roomInfo)
-                {
-                        int i = 0;
-                        foreach (string guestAddress in roomInfo.GuestsAddressAndName.Keys)
-                        {
-                                foreach (ClientInfo client in clientsInfo)
-                                {
-                                        if (client.Socket.RemoteEndPoint.ToString() == guestAddress)
-                                        {
-                                                SendMsgToClient("index=" + i++.ToString(), client.Socket); // tell all clients who's index
-                                        }
-                                }
-                        }
-                }
-
-                private static void SendObjectToClient(object obj, Socket client)
-                {
-                        ByteBuffer buffer = new ByteBuffer();
-                        byte[] result = buffer.ToBytes(obj);
-                        client.Send(result);
-                }
-
-                private static void SendObjectToRoom(object obj, RoomInfo roomInfo)
-                {
-                        foreach (string guestAddress in roomInfo.GuestsAddressAndName.Keys)
-                        {
-                                foreach (ClientInfo client in clientsInfo)
-                                {
-                                        if (client.Socket.RemoteEndPoint.ToString() == guestAddress)
-                                        {
-                                                SendObjectToClient(obj, client.Socket); // tell all clients who in room
-                                        }
-                                }
-                        }
-                }
-
-                private static void SendObjectWithoutSender(object obj, ClientInfo sender)
-                {
-                        if (clientsInfo.Count != 0)
-                        {
-                                foreach (ClientInfo clientInfo in clientsInfo)
-                                {
-                                        if (clientInfo != sender)
-                                        {
-                                                SendObjectToClient(obj, clientInfo.Socket);
-                                        }
-                                }
-                        }
-                }
-
-                // recieve message from client
+                // receive message from client(s)
                 private static void ReceiveMsgFromClient(object clientInfo)
                 {
                         Socket mClientSocket = ((ClientInfo)clientInfo).Socket;
@@ -447,10 +394,6 @@ namespace TinyWarriorServer
                         {
                                 try
                                 {
-                                        if (!IsSocketConnected(mClientSocket))
-                                        {
-                                                MessageHandle("exit", (ClientInfo)clientInfo);
-                                        }
                                         mClientSocket.Receive(result); // receive message to result
                                         object obj = new ByteBuffer().GetObject(result);
                                         if (obj != null)
@@ -458,7 +401,7 @@ namespace TinyWarriorServer
                                                 try
                                                 {
                                                         PlayerAction playerAction = (PlayerAction)obj;
-                                                        SendObjectWithoutSender(playerAction, (ClientInfo)clientInfo);
+                                                        SendObjectToRoomExceptSender(playerAction, (ClientInfo)clientInfo);
                                                 }
                                                 catch
                                                 {
@@ -466,7 +409,7 @@ namespace TinyWarriorServer
                                                         {
                                                                 RoomInfo newRoom = (RoomInfo)obj;
                                                                 roomsInfo.Add(newRoom);
-                                                                SendObjectToClient(newRoom, mClientSocket);
+                                                                SendObjectToClient(newRoom, (ClientInfo)clientInfo);
                                                                 continue;
                                                         }
                                                         catch
@@ -518,14 +461,15 @@ namespace TinyWarriorServer
                                 ClientStartRoom(message.Remove(0, 6), clientInfo);
                                 return;
                         }
+                        if (message.StartsWith("dead=") || message.StartsWith("leaver=") || message.StartsWith("winner="))
+                        {
+                                UpdateBattlePlayer(message, clientInfo);
+                                return;
+                        }
                         switch (message)
                         {
                                 case "getrooms":
-                                        SendObjectToClient(roomsInfo, clientInfo.Socket);
-                                        break;
-                                case "exit":
-                                        clientInfo.Socket.Close();
-                                        clientsInfo.Remove((ClientInfo)clientInfo);
+                                        SendObjectToClient(roomsInfo, clientInfo);
                                         break;
                                 default:
                                         PrintLineInfo("From client {0}: {1}", clientInfo.Socket.RemoteEndPoint.ToString(), message);
@@ -538,24 +482,24 @@ namespace TinyWarriorServer
                         RoomInfo roomInfo = FindRoomInfoByAddress(address);
                         if (roomInfo == null)
                         {
-                                SendMsgToClient("房间不存在！", clientInfo.Socket);
+                                SendMsgToClient("房间不存在！", clientInfo);
                                 return;
                         }
                         if (!roomInfo.IsStart)
                         {
-                                if (roomInfo.GuestsAddressAndName.Count < roomInfo.MaxPlayer)
+                                if (roomInfo.GuestsAddressAndName.Count < roomInfo.MaxPlayerNumber)
                                 {
                                         roomInfo.GuestsAddressAndName.Add(clientInfo.Socket.RemoteEndPoint.ToString(), clientInfo.PlayerName);
                                         SendObjectToRoom(roomInfo, roomInfo);
                                 }
                                 else
                                 {
-                                        SendMsgToClient("房间人数已满！", clientInfo.Socket);
+                                        SendMsgToClient("房间人数已满！", clientInfo);
                                 }
                         }
                         else
                         {
-                                SendMsgToClient("游戏已开始！", clientInfo.Socket);
+                                SendMsgToClient("游戏已开始！", clientInfo);
                         }
                 }
 
@@ -564,12 +508,12 @@ namespace TinyWarriorServer
                         RoomInfo roomInfo = FindRoomInfoByAddress(address);
                         if (roomInfo == null)
                         {
-                                SendMsgToClient("房间不存在！", clientInfo.Socket);
+                                SendMsgToClient("房间不存在！", clientInfo);
                                 return;
                         }
-                        if (roomInfo.GuestsAddressAndName.Count < 2)
+                        if (roomInfo.GuestsAddressAndName.Count < 1)
                         {
-                                SendMsgToClient("房间人数不足2人，无法开始游戏！", clientInfo.Socket);
+                                SendMsgToClient("房间人数不足2人，无法开始游戏！", clientInfo);
                         }
                         else
                         {
@@ -591,7 +535,7 @@ namespace TinyWarriorServer
                         RoomInfo roomInfo = FindRoomInfoByAddress(address);
                         if (roomInfo == null)
                         {
-                                SendMsgToClient("房间不存在！", clientInfo.Socket);
+                                SendMsgToClient("房间不存在！", clientInfo);
                                 return;
                         }
                         roomInfo.GuestsAddressAndName.Remove(clientInfo.Socket.RemoteEndPoint.ToString());
@@ -608,6 +552,88 @@ namespace TinyWarriorServer
                         }
                 }
 
+                private static void UpdateBattlePlayer(string message, ClientInfo clientInfo)
+                {
+                        RoomInfo roomInfo = FindRoomInfoByClientInfo(clientInfo);
+                        SendMsgToRoom(message, roomInfo);
+                }
+
+                // send message to client(s)
+                private static void SendMsgToClient(string message, ClientInfo clientInfo)
+                {
+                        ByteBuffer buffer = new ByteBuffer(message);
+                        byte[] result = buffer.ToBytes();
+                        clientInfo.Socket.Send(result);
+                }
+
+                private static void SendMsgToRoom(string message, RoomInfo roomInfo)
+                {
+                        foreach (string guestAddress in roomInfo.GuestsAddressAndName.Keys)
+                        {
+                                foreach (ClientInfo clientInfo in clientsInfo)
+                                {
+                                        if (clientInfo.Socket.RemoteEndPoint.ToString() == guestAddress)
+                                        {
+                                                SendMsgToClient(message, clientInfo); // tell all clients who in room
+                                        }
+                                }
+                        }
+                }
+
+                private static void SendIndexToRoom(RoomInfo roomInfo)
+                {
+                        int i = 0;
+                        foreach (string guestAddress in roomInfo.GuestsAddressAndName.Keys)
+                        {
+                                foreach (ClientInfo clientInfo in clientsInfo)
+                                {
+                                        if (clientInfo.Socket.RemoteEndPoint.ToString() == guestAddress)
+                                        {
+                                                SendMsgToClient("index=" + i++.ToString(), clientInfo); // tell all clients who's index
+                                        }
+                                }
+                        }
+                }
+
+                private static void SendObjectToClient(object obj, ClientInfo clientInfo)
+                {
+                        ByteBuffer buffer = new ByteBuffer();
+                        byte[] result = buffer.ToBytes(obj);
+                        clientInfo.Socket.Send(result);
+                }
+
+                private static void SendObjectToRoom(object obj, RoomInfo roomInfo)
+                {
+                        foreach (string guestAddress in roomInfo.GuestsAddressAndName.Keys)
+                        {
+                                foreach (ClientInfo client in clientsInfo)
+                                {
+                                        if (client.Socket.RemoteEndPoint.ToString() == guestAddress)
+                                        {
+                                                SendObjectToClient(obj, client); // tell all clients who in room
+                                        }
+                                }
+                        }
+                }
+
+                private static void SendObjectToRoomExceptSender(object obj, ClientInfo sender)
+                {
+                        RoomInfo roomInfo = FindRoomInfoByClientInfo(sender);
+                        foreach (string guestAddress in roomInfo.GuestsAddressAndName.Keys)
+                        {
+                                foreach (ClientInfo clientInfo in clientsInfo)
+                                {
+                                        if (clientInfo.Socket.RemoteEndPoint.ToString() == guestAddress)
+                                        {
+                                                if (clientInfo != sender)
+                                                {
+                                                        SendObjectToClient(obj, clientInfo);
+                                                }
+                                        }
+                                }
+                        }
+                }
+
                 private static RoomInfo FindRoomInfoByAddress(string address)
                 {
                         foreach (RoomInfo roomInfo in roomsInfo)
@@ -615,6 +641,22 @@ namespace TinyWarriorServer
                                 if (roomInfo.OwnerAddress == address)
                                 {
                                         return roomInfo;
+                                }
+                        }
+                        return null;
+                }
+
+                private static RoomInfo FindRoomInfoByClientInfo(ClientInfo clientInfo)
+                {
+                        string clientInfoAddress = clientInfo.Socket.RemoteEndPoint.ToString();
+                        foreach (RoomInfo roomInfo in roomsInfo)
+                        {
+                                foreach (string clientAddress in roomInfo.GuestsAddressAndName.Keys)
+                                {
+                                        if (clientAddress == clientInfoAddress)
+                                        {
+                                                return roomInfo;
+                                        }
                                 }
                         }
                         return null;
