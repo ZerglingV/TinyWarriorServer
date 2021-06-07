@@ -10,7 +10,7 @@ namespace TinyWarriorServer
 {
         class GameSocketServer
         {
-                private static byte[] result = new byte[4096];
+                private static byte[] result = new byte[8192];
                 private static string ip = "127.0.0.1";
                 private static int port = 8765;
                 private static IPEndPoint ipEndPoint;
@@ -185,7 +185,7 @@ namespace TinyWarriorServer
                                         }
                                         catch (Exception ex)
                                         {
-                                                Console.WriteLine(ex.Message);
+                                                PrintLineWarning(ex.Message);
                                         }
                                 }
                         }
@@ -249,12 +249,12 @@ namespace TinyWarriorServer
                         foreach (RoomInfo roomInfo in roomsInfo)
                         {
                                 PrintLineInfo("{0,-8} {1,-20}  {2,-15}  {3,-15}  {4,-15}  {5,-15}", i++, roomInfo.RoomName, roomInfo.GuestsAddressAndName.Count, roomInfo.MaxPlayerNumber, roomInfo.IsStart, roomInfo.OwnerAddress);
-                                Console.Write("{0,31} {1,6}", "players' list: ", "");
+                                PrintInfo("{0,31} {1,6}", "players' list: ", "");
                                 foreach (string name in roomInfo.GuestsAddressAndName.Values)
                                 {
-                                        Console.Write("<" + name + "> ");
+                                        PrintInfo("<" + name + "> ");
                                 }
-                                Console.WriteLine();
+                                PrintLineInfo();
                         }
                 }
 
@@ -412,9 +412,23 @@ namespace TinyWarriorServer
                                                                 SendObjectToClient(newRoom, (ClientInfo)clientInfo);
                                                                 continue;
                                                         }
-                                                        catch
+                                                        catch (Exception ex)
                                                         {
-                                                                PrintLineWarning("Get an incorrect object");
+                                                                PrintLineWarning(ex.Message.Replace("\n", "\n<Warning> "));
+                                                                PrintLineInfo("<{0}> has left the game.", ((ClientInfo)clientInfo).PlayerName);
+                                                                if (mClientSocket != null)
+                                                                {
+                                                                        mClientSocket.Close();
+                                                                }
+                                                                try
+                                                                {
+                                                                        clientsInfo.Remove((ClientInfo)clientInfo);
+                                                                }
+                                                                catch (Exception ex2)
+                                                                {
+                                                                        PrintLineWarning(ex2.Message.Replace("\n", "\n<Warning> "));
+                                                                }
+                                                                break;
                                                         }
                                                 }
                                         }
@@ -426,13 +440,20 @@ namespace TinyWarriorServer
                                 }
                                 catch (Exception ex)
                                 {
-                                        PrintLineWarning("" + ex.Message.Replace("\n", "\n<Warning> "));
+                                        PrintLineWarning(ex.Message.Replace("\n", "\n<Warning> "));
                                         PrintLineInfo("<{0}> has left the game.", ((ClientInfo)clientInfo).PlayerName);
                                         if (mClientSocket != null)
                                         {
                                                 mClientSocket.Close();
                                         }
-                                        clientsInfo.Remove((ClientInfo)clientInfo);
+                                        try
+                                        {
+                                                clientsInfo.Remove((ClientInfo)clientInfo);
+                                        }
+                                        catch (Exception ex2)
+                                        {
+                                                PrintLineWarning(ex2.Message.Replace("\n", "\n<Warning> "));
+                                        }
                                         break;
                                 }
                         }
@@ -511,7 +532,7 @@ namespace TinyWarriorServer
                                 SendMsgToClient("房间不存在！", clientInfo);
                                 return;
                         }
-                        if (roomInfo.GuestsAddressAndName.Count < 1)
+                        if (roomInfo.GuestsAddressAndName.Count < 2)
                         {
                                 SendMsgToClient("房间人数不足2人，无法开始游戏！", clientInfo);
                         }
@@ -746,6 +767,12 @@ namespace TinyWarriorServer
                 {
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.Write("<Info> " + info, arg0, arg1, arg2, arg3, arg4, arg5);
+                        Console.ResetColor();
+                }
+                private static void PrintLineInfo()
+                {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine();
                         Console.ResetColor();
                 }
 
