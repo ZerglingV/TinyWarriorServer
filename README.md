@@ -2,4 +2,4 @@
 
  The server for TinyWarriorServer game.
 
-![TinyWarriorServer.png](\TinyWarriorServer\mp.ico)
+![TinyWarriorServer.png](TinyWarriorServer/mp.ico)
