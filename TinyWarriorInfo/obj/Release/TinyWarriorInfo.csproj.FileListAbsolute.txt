@@ -1,0 +1,6 @@
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\TinyWarriorInfo\bin\Release\TinyWarriorInfo.dll
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\TinyWarriorInfo\bin\Release\TinyWarriorInfo.pdb
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\TinyWarriorInfo\obj\Release\TinyWarriorInfo.csprojAssemblyReference.cache
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\TinyWarriorInfo\obj\Release\TinyWarriorInfo.csproj.CoreCompileInputs.cache
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\TinyWarriorInfo\obj\Release\TinyWarriorInfo.dll
+E:\Visual Community 2019\Codes_C#\TinyWarriorServer\TinyWarriorInfo\obj\Release\TinyWarriorInfo.pdb
