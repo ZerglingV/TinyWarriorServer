@@ -45,7 +45,7 @@ Test commands (input in the console for testing only, case insensitive. The form
 
 <p align="center"><b>custom IP and port</b></p>
 
-![TinyWarriorServer.png](TinyWarriorServer/Samples/sample1.png)
+![TinyWarriorServer.png](TinyWarriorServer/Samples/Sample1.png)
 
 ## Copyright
 

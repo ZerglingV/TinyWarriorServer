@@ -45,7 +45,7 @@
 
 <p align="center"><b>自定义IP及端口</b></p>
 
-![TinyWarriorServer.png](TinyWarriorServer/Samples/sample1.png)
+![TinyWarriorServer.png](TinyWarriorServer/Samples/Sample1.png)
 
 ## 版权
 
